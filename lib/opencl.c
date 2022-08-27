@@ -2,6 +2,11 @@
 
 #include "opencl.h"
 
+/**
+ * clSetup constructor.
+ *
+ * returns: a pointer to an empty clSetup struct.
+ */
 clSetup *createClSetup()
 {
     clSetup *setup = malloc(sizeof(clSetup));
@@ -11,6 +16,9 @@ clSetup *createClSetup()
     return setup;
 }
 
+/**
+ * clSetup desctuctor.
+ */
 void releaseClSetup(clSetup *setup)
 {
     free(setup->ctx);
@@ -19,6 +27,16 @@ void releaseClSetup(clSetup *setup)
     free(setup);
 }
 
+/**
+ * Check whether an OpenCL procedure returned an error.
+ *
+ * cl_int err: the error object that is returned by an OpenCL procedure.
+ * char *err_msg: the error message that will be printed.
+ * void (*additional_err_fn)(cl_program program, cl_device_id device): function
+ * pointer that is used to do additional things if an error is found.
+ * cl_program program: the OpenCL program.
+ * cl_device_id device: the OpenCL compatible device.
+ */
 void check_opencl_error(
     cl_int err,
     char *err_msg,
@@ -37,19 +55,32 @@ void check_opencl_error(
     }
 }
 
+/**
+ * Setup an OpenCL context for the given device type.
+ *
+ * cl_device_type device_type: the type of the OpenCL compatible device.
+ * clSetup *setup: the setup object that has the OpenCL context, platform id and device id.
+ */
 void setup_opencl(
     cl_device_type device_type,
     clSetup *setup)
 {
+    // initialize the error object
     cl_int err = CL_SUCCESS;
+
+    // initialize the error message string
+    char *err_msg = calloc(64, sizeof(char));
+
+    // get the platform id
     err = clGetPlatformIDs(1, setup->platforms, NULL);
     check_opencl_error(err, "Error getting the platform id", NULL, NULL, NULL);
+
+    // get the device id
     err = clGetDeviceIDs(
         *(setup->platforms),
         device_type,
         1,
         setup->devices, NULL);
-    char *err_msg = calloc(64, sizeof(char));
     sprintf(
         err_msg,
         "Error getting the device id for platform %d",
@@ -61,6 +92,7 @@ void setup_opencl(
         NULL,
         NULL);
 
+    // create OpenCL context for the device
     *(setup->ctx) = clCreateContext(
         NULL,
         1,
@@ -79,18 +111,35 @@ void setup_opencl(
         NULL,
         NULL,
         NULL);
+
+    // free up the error message string since we are done with the setup
     free(err_msg);
 }
 
+/**
+ * Read an OpenCL kernel file.
+ *
+ * char *file_path: The file path of the kernel file that will be read.
+ * returns: the buffer that holds the contents of the kernel file.
+ */
 char *read_opencl_kernel_file(char *file_path)
 {
     FILE *kernel_file = fopen(file_path, "r");
+
+    // get the file size to initialize a buffer of that size
     fseek(kernel_file, 0, SEEK_END);
     size_t filesize = ftell(kernel_file);
     rewind(kernel_file);
+
+    // allocate memory for the buffer
     char *buffer = calloc(filesize + 1, sizeof(char));
+
+    // load the contents of the kernel file to the memory
     fread(buffer, sizeof(char), filesize, kernel_file);
+
+    // set the end of the file to NULL for OpenCL
     buffer[filesize] = '\0';
+
     fclose(kernel_file);
     return buffer;
 }
