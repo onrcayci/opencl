@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 
 #include "opencl.h"
 
@@ -70,6 +71,18 @@ void setup_opencl(
 
     // initialize the error message string
     char *err_msg = calloc(64, sizeof(char));
+
+    // check if there are any OpenCL compatible platforms
+    cl_uint num_platforms = 0;
+    err = clGetPlatformIDs(INT8_MAX, NULL, &num_platforms);
+    check_opencl_error(err, "Error getting the number of platforms", NULL, NULL, NULL);
+
+    // if the number of platforms is 0, exit the program
+    if (num_platforms == 0)
+    {
+        printf("No OpenCL platforms are detected.");
+        exit(1);
+    }
 
     // get the platform id
     err = clGetPlatformIDs(1, setup->platforms, NULL);
