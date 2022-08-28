@@ -1,7 +1,7 @@
 #define CL_VECMULT_FILE "vecmult.cl"
 #define CL_VECMULT_KERNEL "vecmult"
 
-#include "../lib/opencl.h"
+#include <opencl.h>
 
 #include <stdio.h>
 #include <stdlib.h>
