@@ -97,7 +97,7 @@ void setup_opencl(
     sprintf(
         err_msg,
         "Error getting the device id for platform %d",
-        *(setup->platforms));
+        *(int *)(setup->platforms));
     check_opencl_error(
         err,
         err_msg,
@@ -116,8 +116,8 @@ void setup_opencl(
     sprintf(
         err_msg,
         "Error creating context for platform %d and device %d\n",
-        *(setup->platforms),
-        *(setup->devices));
+        *(int *)(setup->platforms),
+        *(int *)(setup->devices));
     check_opencl_error(
         err,
         err_msg,
